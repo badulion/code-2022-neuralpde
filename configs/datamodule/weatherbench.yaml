@@ -1,0 +1,22 @@
+_target_: src.datamodules.weatherbench_datamodule.WeatherbenchDatamodule
+
+data_dir: ${data_dir}/weatherbench # data_dir is specified in config.yaml
+batch_size: 16
+num_workers: 0
+pin_memory: False
+
+history: 1
+train_val_test_split: [1979, 2015, 2017, 2019]
+norm_years: [1979]
+
+
+horizons: [4, 16, 16] # train, val, test
+
+target_dict:
+  geopotential_500: z
+  temperature_850: t
+  #2m_temperature: t2m
+  #10m_u_component_of_wind: u10
+  #10m_v_component_of_wind: v10
+  #total_cloud_cover: tcc
+  #total_precipitation: tp

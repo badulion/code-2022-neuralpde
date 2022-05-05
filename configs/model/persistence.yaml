@@ -1,0 +1,2 @@
+name: persistence
+_target_: src.models.persistence_module.Persistence
