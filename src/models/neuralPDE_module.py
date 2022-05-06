@@ -1,14 +1,16 @@
 from typing import Any, List
 
 import torch
+from torchdiffeq import odeint_adjoint as odeint
 from pytorch_lightning import LightningModule
 from torchmetrics import MinMetric
 from src.utils.metrics import RMSE
 
 from src.models.components.simple_resnet import SimpleResnet
+from src.models.components.nn_wrapper import NeuralNetWrapper
 
 
-class ResnetModule(LightningModule):
+class NeuralPDEModule(LightningModule):
     """Example of LightningModule for Learning PDEs.
 
     A LightningModule organizes your PyTorch code into 5 sections:
@@ -34,7 +36,7 @@ class ResnetModule(LightningModule):
         # it also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
 
-        self.net = net
+        self.net = NeuralNetWrapper(net)
 
         # loss function
         self.criterion = torch.nn.MSELoss()
@@ -50,11 +52,13 @@ class ResnetModule(LightningModule):
 
     def forward(self, x: torch.Tensor, tpoints: torch.Tensor):
         # in lightning, forward defines the prediction/inference actions
-        pred = []
-        for t in tpoints:
-            x = self.net(x)
-            pred.append(x)
-        return torch.stack(pred)
+        t_0 = torch.tensor([0])
+        t = torch.hstack([t_0, tpoints])
+        pred = odeint(self.net, x, t)
+        return pred[:-1]
+
+    def neural_net_wrapper(self, t, x):
+        return self.net(x)
 
     def step(self, batch: Any):
         x, y, tpoints = batch

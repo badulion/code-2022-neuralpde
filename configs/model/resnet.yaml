@@ -1,4 +1,4 @@
-_target_: src.models.resnet_module.ResnetModule
+_target_: src.models.iterative_module.IterativeModule
 lr: 0.001
 weight_decay: 0.0005
 

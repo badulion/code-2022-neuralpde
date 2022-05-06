@@ -169,7 +169,8 @@ class PDEDatamodule(pl.LightningDataModule):
     def collate_fn(self, sample_list):
         x = np.stack([item[0] for item in sample_list], axis=0)
         y = np.stack([item[1] for item in sample_list], axis=1)
-        t = np.stack([item[2] for item in sample_list], axis=1)
+        #t = np.stack([item[2] for item in sample_list], axis=1)
+        t = sample_list[0][2]
         return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32), torch.tensor(t, dtype=torch.float32)
 
 
