@@ -38,5 +38,5 @@ domain:
     points_low: 10
   t:
     min: 0
-    max: 101
+    max: 1000
     step: 1

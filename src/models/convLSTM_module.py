@@ -1,22 +1,43 @@
 from typing import Any, List
 
 import torch
-import torch.nn as nn
 from pytorch_lightning import LightningModule
 from torchmetrics import MinMetric
 from src.utils.metrics import RMSE
 
+from src.models.components.convLSTM import ConvLSTM
 
-class Persistence(LightningModule):
 
-    def __init__(self,
-                 **kwargs):
+class ConvLSTMModule(LightningModule):
+    """Example of LightningModule for Learning PDEs.
+
+    A LightningModule organizes your PyTorch code into 5 sections:
+        - Computations (init).
+        - Train loop (training_step)
+        - Validation loop (validation_step)
+        - Test loop (test_step)
+        - Optimizers (configure_optimizers)
+
+    Read the docs:
+        https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html
+    """
+
+    def __init__(
+        self,
+        net: ConvLSTM,
+        lr: float = 0.001,
+        weight_decay: float = 0.0005,
+        use_last_only: bool = True,
+    ):
         super().__init__()
 
         # this line allows to access init params with 'self.hparams' attribute
         # it also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
 
+        self.net = net
+
+        self.use_last_only = use_last_only
 
         # loss function
         self.criterion = torch.nn.MSELoss()
@@ -32,11 +53,10 @@ class Persistence(LightningModule):
 
     def forward(self, x: torch.Tensor, tpoints: torch.Tensor):
         # in lightning, forward defines the prediction/inference actions
-        x = x[-1,...]
-        pred = []
-        for t in tpoints:
-            pred.append(x)
-        return torch.stack(pred)
+        if self.use_last_only:
+            x = x[-1,...]
+            x = x.unsqueeze(0).expand(len(tpoints), -1, -1, -1, -1)
+        return self.net(x)
 
     def step(self, batch: Any):
         x, y, tpoints = batch

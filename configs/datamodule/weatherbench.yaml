@@ -5,11 +5,10 @@ batch_size: 16
 num_workers: 0
 pin_memory: False
 
-history: 1
 train_val_test_split: [1979, 2015, 2017, 2019]
 norm_years: [1979]
 
-
+histories: [4, 16, 16] # train, val, test
 horizons: [4, 16, 16] # train, val, test
 
 target_dict:

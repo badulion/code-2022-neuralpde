@@ -117,9 +117,9 @@ class WeatherbenchDatamodule(pl.LightningDataModule):
                  target_dict,
                  train_val_test_split = [1979, 2015, 2017, 2019],
                  batch_size: int = 8,
-                 history=1,
+                 histories=[1,1,1],
                  num_workers=0,
-                 horizons=4,
+                 horizons=[4,4,4],
                  norm_years=[1979],
                  pin_memory: bool = False,
                  name="Weatherbench"):
@@ -130,7 +130,11 @@ class WeatherbenchDatamodule(pl.LightningDataModule):
         self.target_dict = target_dict
         self.norm_years = norm_years
 
-        self.history = history
+
+        self.history_train = histories[0]
+        self.history_val = histories[1]
+        self.history_test = histories[2]
+
         self.horizon_train = horizons[0]
         self.horizon_val = horizons[1]
         self.horizon_test = horizons[2]
@@ -148,19 +152,19 @@ class WeatherbenchDatamodule(pl.LightningDataModule):
         self.train = WeatherbenchDataset(self.path,
                                          self.target_dict,
                                          self.train_years,
-                                         history=self.history,
+                                         history=self.history_train,
                                          horizon=self.horizon_train,
                                          norm_years=self.norm_years)
         self.val = WeatherbenchDataset(self.path,
                                        self.target_dict,
                                        self.val_years,
-                                         history=self.history,
+                                         history=self.history_val,
                                        horizon=self.horizon_val,
                                        norm_years=self.norm_years)
         self.test = WeatherbenchDataset(self.path,
                                         self.target_dict,
                                         self.test_years,
-                                         history=self.history,
+                                         history=self.history_test,
                                         horizon=self.horizon_test,
                                         norm_years=self.norm_years)
 
@@ -174,7 +178,7 @@ class WeatherbenchDatamodule(pl.LightningDataModule):
         return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=self.collate_fn)
 
     def collate_fn(self, sample_list):
-        x = np.stack([item[0] for item in sample_list], axis=0)
+        x = np.stack([item[0] for item in sample_list], axis=1)
         y = np.stack([item[1] for item in sample_list], axis=1)
         #t = np.stack([item[2] for item in sample_list], axis=1)
         t = sample_list[0][2]

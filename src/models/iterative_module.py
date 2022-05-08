@@ -50,6 +50,7 @@ class IterativeModule(LightningModule):
 
     def forward(self, x: torch.Tensor, tpoints: torch.Tensor):
         # in lightning, forward defines the prediction/inference actions
+        x = x[-1,...]
         pred = []
         for t in tpoints:
             x = self.net(x)
@@ -58,7 +59,6 @@ class IterativeModule(LightningModule):
 
     def step(self, batch: Any):
         x, y, tpoints = batch
-        x = x[:,-1,...]
         preds = self.forward(x, tpoints)
         loss = self.criterion(preds, y)
         return loss, preds, y

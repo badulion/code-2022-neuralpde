@@ -108,9 +108,9 @@ class PDEDataset(Dataset):
         # data
         arr = ds.isel(time=slice(i+self.history, i+self.history + self.horizon))[variable].values
         arr = (arr-normalizer[0])/normalizer[1]
-        y = np.expand_dims(arr, axis=1)
+        arr = np.expand_dims(arr, axis=1)
 
-        return y
+        return arr
 
     def __len__(self) -> int:
         return np.sum(self.num_samples, dtype=np.int32)
@@ -122,9 +122,9 @@ class PDEDatamodule(pl.LightningDataModule):
                  target_dict,
                  equation,
                  batch_size: int = 8,
-                 history=1,
+                 histories=[1,1,1],
                  num_workers=0,
-                 horizons=[4, 4, 4],
+                 horizons=[4,4,4],
                  pin_memory: bool = False):
         super().__init__()
 
@@ -133,7 +133,10 @@ class PDEDatamodule(pl.LightningDataModule):
 
         self.target_dict = target_dict
 
-        self.history = history
+        self.history_train = histories[0]
+        self.history_val = histories[1]
+        self.history_test = histories[2]
+
         self.horizon_train = horizons[0]
         self.horizon_val = horizons[1]
         self.horizon_test = horizons[2]
@@ -146,15 +149,15 @@ class PDEDatamodule(pl.LightningDataModule):
     def setup(self, stage=None):
         self.train = PDEDataset(os.path.join(self.path, "train"),
                                 self.target_dict,
-                                history=self.history,
+                                history=self.history_train,
                                 horizon=self.horizon_train)
         self.val = PDEDataset(os.path.join(self.path, "val"),
                                 self.target_dict,
-                                history=self.history,
+                                history=self.history_val,
                                 horizon=self.horizon_val)
         self.test = PDEDataset(os.path.join(self.path, "test"),
                                 self.target_dict,
-                                history=self.history,
+                                history=self.history_test,
                                 horizon=self.horizon_test)
 
     def train_dataloader(self):
@@ -167,7 +170,7 @@ class PDEDatamodule(pl.LightningDataModule):
         return DataLoader(self.test, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=self.collate_fn)
 
     def collate_fn(self, sample_list):
-        x = np.stack([item[0] for item in sample_list], axis=0)
+        x = np.stack([item[0] for item in sample_list], axis=1)
         y = np.stack([item[1] for item in sample_list], axis=1)
         #t = np.stack([item[2] for item in sample_list], axis=1)
         t = sample_list[0][2]

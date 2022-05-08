@@ -1,0 +1,12 @@
+_target_: src.models.convLSTM_module.ConvLSTMModule
+lr: 0.001
+weight_decay: 0.0005
+use_last_only: True
+
+net:
+  _target_: src.models.components.convLSTM.ConvLSTM
+  input_dim: 4
+  num_layers: 4
+  hidden_dim: 16
+  kernel_size: 3
+  bias: true

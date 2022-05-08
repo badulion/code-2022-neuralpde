@@ -10,7 +10,10 @@ from tqdm import tqdm
 
 import os
 import sys
+import shutil
 sys.path.append(".")
+
+
 from src import utils
 from src.utils.var import dict_hash
 from rich.progress import track, Progress
@@ -280,7 +283,7 @@ class GenerationUtility:
         # parameters
         self.name = name
         self.zero_levels = list(zero_levels)
-        self.variables = variables
+        self.variables = list(variables)
         self.params = params
         self.complexities = complexities
         self.num_equations = num_equations
@@ -318,9 +321,11 @@ class GenerationUtility:
 
     def generate(self):
         log = utils.get_logger(__name__)
+        if os.path.exists(self.data_dir):
+            log.info("Deleting previous equations.")
+            shutil.rmtree(self.data_dir)
 
         # generate
-        log.info("Solving train equations.")
         complexity = self.complexities.train
         eq_hash = dict_hash(
             {'name': self.name,
@@ -330,9 +335,11 @@ class GenerationUtility:
             self.params,
         )
         base_path = os.path.join(self.data_dir, "train")
-        print(base_path)
         if not os.path.exists(base_path):
             os.makedirs(base_path)
+
+
+        log.info("Solving train equations.")
         for i in track(range(self.num_equations.train), description="[red]Solving..."):
             eq_dataset = self.generator.generate(complexity=complexity)
             path = os.path.join(base_path, f"{eq_hash}_{i}.nc")

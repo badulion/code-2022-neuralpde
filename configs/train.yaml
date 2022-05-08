@@ -6,7 +6,7 @@ defaults:
   - datamodule: toypde
   - model: resnet.yaml
   - callbacks: default.yaml
-  - logger: tensorboard.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - logger: #tensorboard.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
   - log_dir: default.yaml
 

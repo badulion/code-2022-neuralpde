@@ -2,13 +2,13 @@ _target_: src.datamodules.toypde_datamodule.PDEDatamodule
 
 data_dir: ${data_dir}/toypdes # data_dir is specified in config.yaml
 equation: gas_dynamics
-batch_size: 4
+batch_size: 8
 num_workers: 0
 pin_memory: False
 
 
-history: 1
-horizons: [1, 16, 16] # train, val, test
+histories: [4, 16, 16] # train, val, test
+horizons: [4, 16, 16] # train, val, test
 
 target_dict:
   density: p
