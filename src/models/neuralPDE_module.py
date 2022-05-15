@@ -1,7 +1,7 @@
 from typing import Any, List
 
 import torch
-from torchdiffeq import odeint_adjoint as odeint
+from torchdiffeq import odeint_adjoint, odeint
 from pytorch_lightning import LightningModule
 from torchmetrics import MinMetric
 from src.utils.metrics import RMSE
@@ -29,6 +29,7 @@ class NeuralPDEModule(LightningModule):
         net: torch.nn.Module,
         lr: float = 0.001,
         weight_decay: float = 0.0005,
+        use_adjoint = False,
     ):
         super().__init__()
 
@@ -37,6 +38,7 @@ class NeuralPDEModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.net = NeuralNetWrapper(net)
+        self.solver = odeint_adjoint if use_adjoint else odeint
 
         # loss function
         self.criterion = torch.nn.MSELoss()
@@ -52,9 +54,10 @@ class NeuralPDEModule(LightningModule):
 
     def forward(self, x: torch.Tensor, tpoints: torch.Tensor):
         # in lightning, forward defines the prediction/inference actions
-        t_0 = torch.tensor([0])
+        x = x[-1,...]
+        t_0 = torch.tensor([0], device=tpoints.device)
         t = torch.hstack([t_0, tpoints])
-        pred = odeint(self.net, x, t)
+        pred = self.solver(self.net, x, t)
         return pred[:-1]
 
     def neural_net_wrapper(self, t, x):
@@ -62,7 +65,6 @@ class NeuralPDEModule(LightningModule):
 
     def step(self, batch: Any):
         x, y, tpoints = batch
-        x = x[:,-1,...]
         preds = self.forward(x, tpoints)
         loss = self.criterion(preds, y)
         return loss, preds, y
@@ -113,7 +115,8 @@ class NeuralPDEModule(LightningModule):
         for i in range(horizon):
             horizon_mse = torch.mean((preds[i]-targets[i])**2, dim=(0, -1, -2))
             metrics = {f"test/rmse/{target_names[k]}": torch.sqrt(horizon_mse[k]) for k in range(len(target_names))}
-            self.logger.log_metrics(metrics, step=i+1)
+            for logger in self.loggers:
+                logger.log_metrics(metrics, step=i+1)
 
 
         return {"loss": loss, "preds": preds, "targets": targets}

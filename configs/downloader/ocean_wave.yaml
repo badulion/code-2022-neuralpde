@@ -1,0 +1,14 @@
+_target_: src.utils.wave_downloader.WaveDownloader
+data_dir: ${original_work_dir}/data/ocean_wave
+
+variables:
+  - VHM0
+  - VMDR
+  - VPED
+
+start_time: 0
+end_time: 81807
+minibatch_size: 10
+batch_size: 1000
+timeout: 1.0E+6
+continue_download: true

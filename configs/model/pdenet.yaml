@@ -1,0 +1,14 @@
+_target_: src.models.pdenet_module.PDENetModule
+lr: 0.001
+weight_decay: 0.0005
+
+net:
+  _target_: src.models.components.pdenet_wrapper.PDENet
+  input_channels: 4
+  kernel_size: 3
+  max_order: 2
+  constraint: FROZEN
+  hidden_layers: 4
+  scheme: upwind
+  dt: 1
+  dx: 1

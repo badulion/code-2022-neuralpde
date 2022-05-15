@@ -54,7 +54,7 @@ class DistanaModule(LightningModule):
         #prepare input
         x = x[-1,...]
         b, _, h, w = x.size()
-        lat_in = torch.zeros((b, self.net.pk_lat_size, h, w))
+        lat_in = torch.zeros((b, self.net.pk_lat_size, h, w), device=x.device)
 
         #reset model
         self.net.reset_hidden(b, (h, w))
@@ -117,7 +117,8 @@ class DistanaModule(LightningModule):
         for i in range(horizon):
             horizon_mse = torch.mean((preds[i]-targets[i])**2, dim=(0, -1, -2))
             metrics = {f"test/rmse/{target_names[k]}": torch.sqrt(horizon_mse[k]) for k in range(len(target_names))}
-            self.logger.log_metrics(metrics, step=i+1)
+            for logger in self.loggers:
+                logger.log_metrics(metrics, step=i+1)
 
 
         return {"loss": loss, "preds": preds, "targets": targets}

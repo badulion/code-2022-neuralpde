@@ -1,7 +1,10 @@
 import logging
 import warnings
+import os
 from typing import List, Sequence
 
+import dask
+import torch
 import pytorch_lightning as pl
 import rich.syntax
 import rich.tree
@@ -51,6 +54,14 @@ def extras(config: DictConfig) -> None:
         log.info("Printing config tree with Rich! <config.print_config=True>")
         print_config(config, resolve=True)
 
+    cluster_config(config)
+
+    # dask disable parallel
+    dask.config.set(scheduler='synchronous')
+
+def cluster_config(config: DictConfig) -> None:
+    torch.set_num_threads(config.cluster.num_cpus)
+    os.environ["OMP_NUM_THREADS"] = str(config.cluster.num_cpus)
 
 @rank_zero_only
 def print_config(

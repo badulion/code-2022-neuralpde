@@ -142,9 +142,12 @@ dmypy.json
 
 # Lightning-Hydra-Template
 configs/local/default.yaml
-data/
+data/*/*
 logs/
 outputs/
 wandb/
 .env
 .autoenv
+
+# notebooks
+notebooks/*

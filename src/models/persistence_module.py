@@ -7,7 +7,7 @@ from torchmetrics import MinMetric
 from src.utils.metrics import RMSE
 
 
-class Persistence(LightningModule):
+class PersistenceModule(LightningModule):
 
     def __init__(self,
                  **kwargs):
@@ -90,7 +90,8 @@ class Persistence(LightningModule):
         for i in range(horizon):
             horizon_mse = torch.mean((preds[i]-targets[i])**2, dim=(0, -1, -2))
             metrics = {f"test/rmse/{target_names[k]}": torch.sqrt(horizon_mse[k]) for k in range(len(target_names))}
-            self.logger.log_metrics(metrics, step=i+1)
+            for logger in self.loggers:
+                logger.log_metrics(metrics, step=i+1)
 
 
         return {"loss": loss, "preds": preds, "targets": targets}

@@ -1,0 +1,20 @@
+# @package _global_
+
+# specify here default training configuration
+defaults:
+  - _self_
+  - downloader: ocean_wave
+  - cluster: default.yaml
+
+
+original_work_dir: ${hydra:runtime.cwd}
+
+data_dir: ${original_work_dir}/data/
+
+print_config: True
+
+ignore_warnings: True
+
+seed: null
+
+name: "default"

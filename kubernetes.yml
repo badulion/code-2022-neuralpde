@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neuralpde-download-oceanwave
+spec:
+  template:
+    spec:
+      priorityClassName: research-low
+      containers:
+        - name: soilnet-docker
+          image: lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/neuralpde-2022:latest
+          workingDir: /home/ls6/dulny/neuralPDE-2022/
+          imagePullPolicy: "Always"
+          env:
+            - name: LOGNAME
+              value: "dulny"
+            - name: USER
+              value: "dulny"
+            - name: OMP_NUM_THREADS
+              value: "16"
+          resources:
+            limits:
+              cpu: "16"
+              memory: "32Gi"
+            requests:
+              cpu: "16"
+              memory: "32Gi"
+          command: ["python3", "-u", "download.py"]
+          args: []
+          volumeMounts:
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/data/"
+              name: data
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/outputs/"
+              name: outputs
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/logs/"
+              name: logs
+      imagePullSecrets:
+        - name: lsx-staff-registry
+      restartPolicy: "Never"
+      volumes:
+        - name: data
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/neuralPDE-2022/data/" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: logs
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/neuralPDE-2022/logs/" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: outputs
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/neuralPDE-2022/outputs/" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret

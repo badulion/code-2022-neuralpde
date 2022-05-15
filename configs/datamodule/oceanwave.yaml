@@ -1,0 +1,17 @@
+_target_: src.datamodules.oceanwave_datamodule.OceanwaveDatamodule
+
+data_dir: ${data_dir}/oceanwave # data_dir is specified in config.yaml
+batch_size: 4
+num_workers: 0
+pin_memory: False
+
+train_val_test_split: [0, 8, 9, 10]
+norm_years: [0]
+
+histories: [4, 16, 16] # train, val, test
+horizons: [4, 16, 16] # train, val, test
+
+target_dict:
+  height: VHM0
+  mean_direction: VMDR
+  principal_direction: VPED

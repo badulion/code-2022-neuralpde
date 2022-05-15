@@ -3,12 +3,13 @@
 # specify here default evaluation configuration
 defaults:
   - _self_
-  - datamodule: mnist.yaml # choose the datamodule for evaluation
-  - model: mnist.yaml
-  - callbacks: null
-  - logger: null
+  - datamodule: toypde
+  - model: resnet.yaml
+  - callbacks: default.yaml
+  - logger: many_loggers.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
-  - log_dir: evaluation.yaml
+  - log_dir: default.yaml
+  - cluster: default.yaml
 
   - experiment: null
 
@@ -29,4 +30,4 @@ seed: null
 name: "default"
 
 # passing checkpoint path is necessary
-ckpt_path: ???
+ckpt_path: /home/andi/Programming/Repositories/code-2022-neuralpde/logs/experiments/runs/pdenet/2022-05-14_10-14-07/checkpoints/epoch_000.ckpt

@@ -1,6 +1,7 @@
 _target_: src.models.neuralPDE_module.NeuralPDEModule
 lr: 0.001
 weight_decay: 0.0005
+use_adjoint: true
 
 net:
   _target_: src.models.components.simple_cnn.SimpleCNN

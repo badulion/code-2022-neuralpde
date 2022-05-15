@@ -4,6 +4,7 @@
 defaults:
   - _self_
   - equation: gas_dynamics.yaml
+  - cluster: default.yaml
 
   # enable color logging
   - override hydra/hydra_logging: colorlog

@@ -1,6 +1,10 @@
 import dotenv
 import hydra
 from omegaconf import DictConfig
+import sys
+import os
+
+#sys.path.append(os.path.join(os.getcwd(), 'src/models/components/pdenet'))
 
 # load environment variables from `.env` file if it exists
 # recursively searches for `.env` in all folders starting from work dir

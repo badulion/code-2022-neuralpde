@@ -42,3 +42,7 @@ pudb            # debugger
 xarray==2022.3.0
 dask==2022.4.1
 netCDF4==1.5.8
+pydap==3.2.2 # for loading data from OPeNDAP
+
+# --------- models --------- #
+sympy # required for pdenet

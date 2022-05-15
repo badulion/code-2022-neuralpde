@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: {{ job_name }}-
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: "Never"
+      containers:
+        - name: pytorch11
+          image: {{ image }}
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: DATADIR
+              value: "/repo/data/trivago/dataset"
+            - name: OUTPUTDIR
+              value: "/repo/output"
+            - name: LOGDIR
+              value: "$(OUTPUTDIR)/logging/{{ log_dir }}"
+          resources:
+            limits:
+              {% if use_gpu -%}nvidia.com/gpu: "1" {% endif %}
+              cpu: "{{ cpus }}"
+              memory: "{{ memory }}Gi"
+            requests:
+              {% if use_gpu -%}nvidia.com/gpu: "1" {% endif %}
+              cpu: "{{ cpus }}"
+              memory: "{{ memory }}Gi"
+          volumeMounts:
+            - mountPath: /repo
+              name: repo
+          command: ["python3", "-u", "{{ script_path }}"]
+          args: [{{ args_str }}]
+      imagePullSecrets:
+        - name: dhubcred
+      volumes:
+        - name: repo
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
+            user: studgrimmalex
+            path: "/home/stud/grimmalex/thesis"
+            secretRef:
+              name: ceph-secret

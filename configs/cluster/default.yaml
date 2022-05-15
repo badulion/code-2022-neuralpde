@@ -1,0 +1,6 @@
+num_cpus: 16
+memory: 32Gi
+
+volumes:
+  - data:
+    mount_path: "/home/ls6/dulny/neuralPDE-2022/data/"

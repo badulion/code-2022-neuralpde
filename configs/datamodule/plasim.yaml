@@ -1,0 +1,18 @@
+_target_: src.datamodules.plasim_datamodule.PlasimDatamodule
+
+data_dir: ${data_dir}/plasim # data_dir is specified in config.yaml
+batch_size: 16
+num_workers: 0
+pin_memory: False
+
+train_val_test_split: [1, 11, 13, 15]
+norm_years: [1]
+
+histories: [4, 16, 16] # train, val, test
+horizons: [4, 16, 16] # train, val, test
+
+target_dict:
+  temperature: ta
+  wind_speed_lon: ua
+  wind_speed_lat: va
+  geopotential: zg

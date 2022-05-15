@@ -1,7 +1,7 @@
 _target_: src.datamodules.weatherbench_datamodule.WeatherbenchDatamodule
 
 data_dir: ${data_dir}/weatherbench # data_dir is specified in config.yaml
-batch_size: 16
+batch_size: 4
 num_workers: 0
 pin_memory: False
 

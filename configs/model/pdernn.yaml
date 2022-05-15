@@ -1,0 +1,12 @@
+_target_: src.models.pdernn_module.PDERNNModule
+lr: 0.001
+weight_decay: 0.0005
+use_last_only: True
+
+net:
+  _target_: src.models.components.pdernn.PDERNN
+  input_features: 400
+  hidden_size: 100
+  num_layers: 2
+  use_attention: False
+  bias: True
