@@ -3,7 +3,7 @@ import torch
 
 class SimpleCNN(nn.Module):
     def __init__(self,
-                 input_channels,
+                 input_dim,
                  hidden_layers,
                  hidden_channels,
                  kernel_size=3):
@@ -15,10 +15,10 @@ class SimpleCNN(nn.Module):
             hidden_list.append(nn.SELU())
             
         self.model = nn.Sequential(
-            nn.Conv2d(input_channels, hidden_channels, 3, padding='same', padding_mode='circular'),
+            nn.Conv2d(input_dim, hidden_channels, 3, padding='same', padding_mode='circular'),
             nn.SELU(),
             *hidden_list,
-            nn.Conv2d(hidden_channels, input_channels, 3, padding='same', padding_mode='circular')
+            nn.Conv2d(hidden_channels, input_dim, 3, padding='same', padding_mode='circular')
         )
 
     def forward(self, x):

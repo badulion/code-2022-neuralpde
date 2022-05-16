@@ -87,7 +87,7 @@ class ConvLSTM(nn.Module):
         >> h = last_states[0][0]  # 0 for layer index, 0 for h index
     """
 
-    def __init__(self, input_channels, hidden_channels, kernel_size, num_layers,bias=True):
+    def __init__(self, input_dim, hidden_channels, kernel_size, num_layers,bias=True):
         super(ConvLSTM, self).__init__()
 
         if isinstance(kernel_size, int):
@@ -102,7 +102,7 @@ class ConvLSTM(nn.Module):
         if not len(kernel_size) == len(hidden_dim) == num_layers:
             raise ValueError('Inconsistent list length.')
 
-        self.input_dim = input_channels
+        self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.kernel_size = kernel_size
         self.num_layers = num_layers

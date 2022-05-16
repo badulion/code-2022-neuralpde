@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Optional
 import numpy as np
 
 from scipy.signal import convolve2d
@@ -88,7 +89,6 @@ class PDEGenerator:
             self.tpoints = np.append(self.tpoints, tmax)
 
         # dynamic
-        self.dynamic = self._create_dynamic(equation, params)
         self.zero_levels = zero_levels
         self.params = params
         self.variables = variables
@@ -98,7 +98,7 @@ class PDEGenerator:
         self.rng = np.random.default_rng(seed)
 
 
-    def _create_dynamic(self, equation, params):
+    def _create_dynamic(self, equation, params, verbose=False):
         def dynamics_progress_wrapper(t, u, pbar, task, state, dynamics, params):
             last_t, = state
             pbar.update(task, advance=t-last_t)
@@ -109,30 +109,36 @@ class PDEGenerator:
         # selecting the derivative function
         if equation == "gas_dynamics":
             derivative = self._gas_dynamics_equation
+        elif equation == "wave":
+            derivative = self._wave_equation
+        elif equation == "burgers":
+            derivative = self._burgers_equation
         else:
-            derivative = self._advection_equation
+            derivative = self._advection_diffusion_equation
 
-        if self.verbose:
+        if verbose:
             out_dyn = partial(dynamics_progress_wrapper, dynamics=derivative, params=params)
         else: 
             out_dyn = partial(derivative, params=params)
         
         return out_dyn
 
-    def generate(self, complexity=1):
+    def generate(self, complexity=1, pbar=None, task=None):
         I = self._sum_of_gaussians(complexity=complexity, zero_levels=self.zero_levels)
+        if self.equation == "wave": #second order equation
+            I = np.concatenate([I, np.zeros_like(I)], axis=0)
+        verbose = pbar is not None and task is not None
+        self.dynamic = self._create_dynamic(self.equation, self.params, verbose=verbose)
 
-        if self.verbose:
-            with Progress() as pbar:
-                task1 = pbar.add_task("[purple]Solving...", total=self.tmax-self.tmin)
-                sol = solve_ivp(
-                    self.dynamic, 
-                    [self.tmin,self.tmax], 
-                    np.reshape(I, (-1,)), 
-                    t_eval=self.tpoints, 
-                    method="RK23",
-                    args=[pbar, task1, [0]]
-                ).y
+        if verbose:
+            sol = solve_ivp(
+                self.dynamic, 
+                [self.tmin,self.tmax], 
+                np.reshape(I, (-1,)), 
+                t_eval=self.tpoints, 
+                method="RK23",
+                args=[pbar, task, [self.tmin]]
+            ).y
         else:
             sol = solve_ivp(
                 self.dynamic, 
@@ -242,18 +248,55 @@ class PDEGenerator:
         dudt = params['scale']*np.stack([dpdt, dTdt, dvdt, dwdt])
         return np.reshape(dudt, (-1,))
 
+    def _wave_equation(self, t, u, params):       
+        u = np.reshape(u, (-1, self.size_y, self.size_x))
+        v = u[0,:,:]
+        v1 = u[1,:,:]
 
-    def _advection_equation(self, t, u, params):
+        # partial derivatives
+        d2udx2 = convolve2d(v, Filters.dx2, mode='same', boundary='wrap')/(self.dx**2)
+        d2udy2 = convolve2d(v, Filters.dy2, mode='same', boundary='wrap')/(self.dy**2)
+
+        #resulting dynamic
+        d2vudt2 = params['scale']*(params['c']**2) * (d2udx2 + d2udy2)
+        dudt = np.concatenate([v1, d2vudt2])
+        return np.reshape(dudt, (-1,))
+
+    def _advection_diffusion_equation(self, t, u, params):
         u = np.reshape(u, (self.size_y, self.size_x))
-        scale, vx, vy = params
 
         # partial derivatives
         dudx = convolve2d(u, Filters.dx, mode='same', boundary='wrap')/(2*self.dx)
         dudy = convolve2d(u, Filters.dy, mode='same', boundary='wrap')/(2*self.dy)
 
-        dudt = scale*(vx*dudx + vy*dudy)
+        d2udx2 = convolve2d(u, Filters.dx2, mode='same', boundary='wrap')/(self.dx**2)
+        d2udy2 = convolve2d(u, Filters.dy2, mode='same', boundary='wrap')/(self.dy**2)
+
+        dudt = params['scale']*(params['D']*(d2udx2+d2udy2)-(params['vx']*dudx + params['vy']*dudy))
         return np.reshape(dudt, (-1,))
 
+    def _burgers_equation(self, t, u, params):
+        u = np.reshape(u, (-1, self.size_y, self.size_x))
+        v = u[0,:,:]
+        w = u[1,:,:]
+
+        # partial derivatives
+        dvdx = convolve2d(v, Filters.dx, mode='same', boundary='wrap')/(2*self.dx)
+        dvdy = convolve2d(v, Filters.dy, mode='same', boundary='wrap')/(2*self.dy)
+        dwdx = convolve2d(w, Filters.dx, mode='same', boundary='wrap')/(2*self.dx)
+        dwdy = convolve2d(w, Filters.dy, mode='same', boundary='wrap')/(2*self.dy)
+
+        d2vdx2 = convolve2d(v, Filters.dx2, mode='same', boundary='wrap')/(self.dx**2)
+        d2vdy2 = convolve2d(v, Filters.dy2, mode='same', boundary='wrap')/(self.dy**2)
+        d2wdx2 = convolve2d(w, Filters.dx2, mode='same', boundary='wrap')/(self.dx**2)
+        d2wdy2 = convolve2d(w, Filters.dy2, mode='same', boundary='wrap')/(self.dy**2)
+
+        dvdt = - v * dvdx - w * dvdy + params['c']*(d2vdx2+d2vdy2)
+        dwdt = - v * dwdx - w * dwdy + params['c']*(d2wdx2+d2wdy2)
+
+        dudt = params['scale']*np.stack([dvdt, dwdt])
+
+        return np.reshape(dudt, (-1,))
 
     def _trigonometric_init(self, x, y, components=5, zero=0.1):
         sigma = [np.random.uniform(0.1, 0.45) for _ in range(components)]
@@ -278,7 +321,8 @@ class GenerationUtility:
                  params,
                  complexities,
                  num_equations,
-                 domain) -> None:
+                 domain,
+                 verbose=False) -> None:
 
         # parameters
         self.name = name
@@ -288,17 +332,18 @@ class GenerationUtility:
         self.complexities = complexities
         self.num_equations = num_equations
         self.domain = domain
+        self.verbose = verbose
 
         # domain
-        x_high = np.linspace(domain.x.min, domain.x.max, domain.x.points, endpoint=False)
-        y_high = np.linspace(domain.y.min, domain.y.max, domain.y.points, endpoint=False)
+        self.x_high = np.linspace(domain.x.min, domain.x.max, domain.x.points, endpoint=False)
+        self.y_high = np.linspace(domain.y.min, domain.y.max, domain.y.points, endpoint=False)
 
-        x_low = np.linspace(domain.x.min, domain.x.max, domain.x.points_low, endpoint=False)
-        y_low = np.linspace(domain.y.min, domain.y.max, domain.y.points_low, endpoint=False)
+        self.x_low = np.linspace(domain.x.min, domain.x.max, domain.x.points_low, endpoint=False)
+        self.y_low = np.linspace(domain.y.min, domain.y.max, domain.y.points_low, endpoint=False)
 
-        tmin=domain.t.min
-        tmax=domain.t.max
-        tstep=domain.t.step
+        self.tmin=domain.t.min
+        self.tmax=domain.t.max
+        self.tstep=domain.t.step
 
         # output path
         self.data_dir = data_dir
@@ -306,17 +351,17 @@ class GenerationUtility:
 
         # instantiating the generator
         self.generator = PDEGenerator(
-            x_high=x_high,
-            y_high=y_high,
-            x_low=x_low,
-            y_low=y_low,
+            x_high=self.x_high,
+            y_high=self.y_high,
+            x_low=self.x_low,
+            y_low=self.y_low,
             equation=self.name,
             zero_levels=zero_levels,
             params=params,
             variables = variables,
-            tmin=tmin,
-            tmax=tmax,
-            tstep=tstep,
+            tmin=self.tmin,
+            tmax=self.tmax,
+            tstep=self.tstep,
         )
 
     def generate(self):
@@ -326,6 +371,7 @@ class GenerationUtility:
             shutil.rmtree(self.data_dir)
 
         # generate
+        log.info("Solving train equations.")
         complexity = self.complexities.train
         eq_hash = dict_hash(
             {'name': self.name,
@@ -338,12 +384,19 @@ class GenerationUtility:
         if not os.path.exists(base_path):
             os.makedirs(base_path)
 
-
-        log.info("Solving train equations.")
-        for i in track(range(self.num_equations.train), description="[red]Solving..."):
-            eq_dataset = self.generator.generate(complexity=complexity)
-            path = os.path.join(base_path, f"{eq_hash}_{i}.nc")
-            eq_dataset.to_netcdf(path)
+        with Progress() as pbar:
+            all_train_equations_task = pbar.add_task("[red]Solving...", total=self.num_equations.train)
+            if self.verbose:
+                single_train_equation_task = pbar.add_task("[purple]Equation progress...", total=self.tmax-self.tmin)
+            for i in range(self.num_equations.train):
+                if self.verbose:
+                    eq_dataset = self.generator.generate(complexity=complexity, pbar=pbar, task=single_train_equation_task)
+                    pbar.reset(single_train_equation_task)
+                else: 
+                    eq_dataset = self.generator.generate(complexity=complexity)
+                path = os.path.join(base_path, f"{eq_hash}_{i}.nc")
+                eq_dataset.to_netcdf(path)
+                pbar.advance(all_train_equations_task, advance=1)
 
         
         log.info("Solving validation equations.")

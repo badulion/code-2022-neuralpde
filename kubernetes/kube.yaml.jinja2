@@ -6,18 +6,20 @@ spec:
   backoffLimit: 0
   template:
     spec:
+      priorityClassName: research-low
       restartPolicy: "Never"
       containers:
-        - name: pytorch11
+        - name: neuralPDE
           image: {{ image }}
-          imagePullPolicy: "IfNotPresent"
+          workingDir: /home/ls6/dulny/neuralPDE-2022/
+          imagePullPolicy: "Always"
           env:
-            - name: DATADIR
-              value: "/repo/data/trivago/dataset"
-            - name: OUTPUTDIR
-              value: "/repo/output"
-            - name: LOGDIR
-              value: "$(OUTPUTDIR)/logging/{{ log_dir }}"
+            - name: LOGNAME
+              value: "dulny"
+            - name: USER
+              value: "dulny"
+            - name: OMP_NUM_THREADS
+              value: "{{ cpus }}"
           resources:
             limits:
               {% if use_gpu -%}nvidia.com/gpu: "1" {% endif %}
@@ -28,18 +30,58 @@ spec:
               cpu: "{{ cpus }}"
               memory: "{{ memory }}Gi"
           volumeMounts:
-            - mountPath: /repo
-              name: repo
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/data/"
+              name: data
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/data/weatherbench"
+              name: weatherbench
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/data/plasim"
+              name: plasim
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/outputs/"
+              name: outputs
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/logs/"
+              name: logs
           command: ["python3", "-u", "{{ script_path }}"]
           args: [{{ args_str }}]
       imagePullSecrets:
-        - name: dhubcred
+        - name: lsx-staff-registry
       volumes:
-        - name: repo
+        - name: data
           cephfs:
             monitors:
-              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
-            user: studgrimmalex
-            path: "/home/stud/grimmalex/thesis"
-            secretRef:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/neuralPDE-2022/data/" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: weatherbench
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/datasets/weatherbench" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: weatherbench
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/datasets/climate/plasimt21" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: logs
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/neuralPDE-2022/logs/" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
+              name: ceph-secret
+        - name: outputs
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
+            user: dulny  # <namespace>
+            path: "/home/ls6/dulny/neuralPDE-2022/outputs/" # The path you want to mount
+            secretRef: # The name of the secret for auth. Is always "ceph-secret"
               name: ceph-secret

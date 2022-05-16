@@ -4,6 +4,6 @@ weight_decay: 0.0005
 
 net:
   _target_: src.models.components.simple_resnet.SimpleResnet
-  input_channels: 4
+  input_dim: 4
   resblocks: 4
   resblock_channels: 16

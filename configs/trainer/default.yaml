@@ -4,7 +4,7 @@ gpus: 1
 
 min_epochs: 1
 max_epochs: 200
-#limit_train_batches: 1000
+limit_train_batches: 5000
 limit_val_batches: 100
 
 # number of validation steps to execute at the beginning of the training

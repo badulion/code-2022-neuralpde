@@ -4,7 +4,7 @@ weight_decay: 0.0005
 
 net:
   _target_: src.models.components.pdenet_wrapper.PDENet
-  input_channels: 4
+  input_dim: 4
   kernel_size: 3
   max_order: 2
   constraint: FROZEN

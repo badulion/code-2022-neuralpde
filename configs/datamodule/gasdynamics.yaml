@@ -1,7 +1,6 @@
 _target_: src.datamodules.toypde_datamodule.PDEDatamodule
 
-data_dir: ${data_dir}/toypdes # data_dir is specified in config.yaml
-equation: gas_dynamics
+data_dir: ${data_dir}/toypdes/gas_dynamics # data_dir is specified in config.yaml
 batch_size: 8
 num_workers: 0
 pin_memory: False

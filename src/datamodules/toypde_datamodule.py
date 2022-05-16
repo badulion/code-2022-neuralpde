@@ -120,7 +120,6 @@ class PDEDatamodule(pl.LightningDataModule):
     def __init__(self,
                  data_dir,
                  target_dict,
-                 equation,
                  batch_size: int = 8,
                  histories=[1,1,1],
                  num_workers=0,
@@ -129,7 +128,7 @@ class PDEDatamodule(pl.LightningDataModule):
         super().__init__()
 
         # variables and data
-        self.path = os.path.join(data_dir, equation)
+        self.path = data_dir
 
         self.target_dict = target_dict
 

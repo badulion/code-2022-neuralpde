@@ -6,7 +6,6 @@ import pytorch_lightning as pl
 import torch
 import os
 from fnmatch import fnmatch
-import matplotlib.pyplot as plt
 
 
 class OceanwaveDataset(Dataset):

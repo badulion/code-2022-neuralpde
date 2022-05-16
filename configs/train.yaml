@@ -3,13 +3,13 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - datamodule: toypde
-  - model: resnet.yaml
-  - callbacks: default.yaml
-  - logger: many_loggers.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
-  - trainer: default.yaml
-  - log_dir: default.yaml
-  - cluster: default.yaml
+  - datamodule: gasdynamics
+  - model: resnet
+  - callbacks: default
+  - logger: many_loggers # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - trainer: default
+  - log_dir: default
+  - cluster: default
 
   # experiment configs allow for version control of specific configurations
   # e.g. best hyperparameters for each combination of model and datamodule
@@ -23,7 +23,7 @@ defaults:
 
   # optional local config for machine/user specific settings
   # it's optional since it doesn't need to exist and is excluded from version control
-  - optional local: default.yaml
+  - optional local: default
 
   # enable color logging
   - override hydra/hydra_logging: colorlog

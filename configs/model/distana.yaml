@@ -4,7 +4,7 @@ weight_decay: 0.0005
 
 net:
   _target_: src.models.components.distana.Distana
-  input_channels: 4
+  input_dim: 4
   pre_layer_size: 16
   lat_size: 16
   lstm_hid_size: 16

@@ -1,21 +1,18 @@
 _target_: src.utils.pde_generator.GenerationUtility
 
-name: gas_dynamics
+name: wave
 
-data_dir: ${data_dir}/toypdes/gas_dynamics # data_dir is specified in config.yaml
+data_dir: ${data_dir}/toypdes/wave # data_dir is specified in config.yaml
 
-zero_levels: [2,2,0,0]
+zero_levels: [0]
 
-variables: [p, t, u, v]
+variables: [u]
 
 verbose: true
 
 params:
-  scale: 0.002
-  mu: 0.01
-  k: 0.01
-  gamma: 1
-  M: 1
+  scale: 0.1
+  c: 0.1
 
 complexities:
   train: 5

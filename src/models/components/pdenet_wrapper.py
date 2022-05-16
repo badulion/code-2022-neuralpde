@@ -4,7 +4,7 @@ from .pdenet.polypde import POLYPDE2D
 
 class PDENet(nn.Module):
     def __init__(self,
-                 input_channels,
+                 input_dim,
                  kernel_size, 
                  max_order, 
                  constraint, 
@@ -14,7 +14,7 @@ class PDENet(nn.Module):
                  dx=1):
         super().__init__()
         abc = "abcdefghijklmnopqrstuvwxyz"
-        channel_names_list = [abc[i] for i in range(input_channels)]
+        channel_names_list = [abc[i] for i in range(input_dim)]
         channel_names_str = ','.join(channel_names_list)
         self.pdenet = POLYPDE2D(
             dt=dt,

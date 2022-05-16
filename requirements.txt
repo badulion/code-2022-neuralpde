@@ -18,7 +18,7 @@ hydra-colorlog>=1.1.0
 hydra-optuna-sweeper>=1.1.0
 
 # --------- loggers --------- #
-# wandb
+wandb
 # neptune-client
 # mlflow
 # comet-ml
@@ -46,3 +46,6 @@ pydap==3.2.2 # for loading data from OPeNDAP
 
 # --------- models --------- #
 sympy # required for pdenet
+
+# --------- kuebernetes --------- #
+jinja2

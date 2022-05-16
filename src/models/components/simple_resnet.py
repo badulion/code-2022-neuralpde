@@ -20,17 +20,17 @@ class ResBlock(nn.Module):
 
 class SimpleResnet(nn.Module):
     def __init__(self,
-                 input_channels,
+                 input_dim,
                  resblocks,
                  resblock_channels):
         super().__init__()
 
         resblock_list = [ResBlock(resblock_channels) for i in range(resblocks)]
         self.model = nn.Sequential(
-            nn.Conv2d(input_channels, resblock_channels, 3, padding='same', padding_mode='circular'),
+            nn.Conv2d(input_dim, resblock_channels, 3, padding='same', padding_mode='circular'),
             nn.SELU(),
             *resblock_list,
-            nn.Conv2d(resblock_channels, input_channels, 3, padding='same', padding_mode='circular')
+            nn.Conv2d(resblock_channels, input_dim, 3, padding='same', padding_mode='circular')
         )
 
     def forward(self, x):

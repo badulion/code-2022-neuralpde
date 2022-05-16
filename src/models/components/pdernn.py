@@ -8,15 +8,15 @@ from .attention import SeqSelfAttention
 
 class PDERNN(nn.Module):
 
-    def __init__(self, input_features, hidden_size, num_layers, use_attention=True, bias=True):
+    def __init__(self, input_dim, hidden_size, num_layers, use_attention=True, bias=True):
         super(PDERNN, self).__init__()
 
-        self.input_features=input_features
+        self.input_features=input_dim
         self.use_attention=use_attention
 
         self.LSTM = nn.LSTM(
-            input_size=input_features,
-            hidden_size=input_features,
+            input_size=input_dim,
+            hidden_size=input_dim,
             num_layers=num_layers,
             bias=bias,
             bidirectional=True,
@@ -24,7 +24,7 @@ class PDERNN(nn.Module):
         )
 
         if self.use_attention:
-            self.attention = SeqSelfAttention(input_features)
+            self.attention = SeqSelfAttention(input_dim)
         else:
             self.attention = nn.Identity()
 

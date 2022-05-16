@@ -1,2 +1,5 @@
 name: persistence
 _target_: src.models.persistence_module.PersistenceModule
+
+net:
+  input_dim: null

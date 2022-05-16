@@ -13,7 +13,7 @@ class Distana(nn.Module):
     """
 
     def __init__(self, 
-                 input_channels,
+                 input_dim,
                  pre_layer_size,
                  lat_size,
                  lstm_hid_size,
@@ -29,14 +29,14 @@ class Distana(nn.Module):
         self.pk_kernel_size = kernel_size
 
         # Input sizes (dimensions)
-        self.pk_dyn_in_size = input_channels
+        self.pk_dyn_in_size = input_dim
         
         # Layer sizes (number of neurons per layer)
         self.pk_pre_layer_size = pre_layer_size
         self.pk_lstm_hid_size = lstm_hid_size
 
         # Output sizes (dimensions)
-        self.pk_dyn_out_size = input_channels
+        self.pk_dyn_out_size = input_dim
 
         # Lateral vector size
         self.pk_lat_size = lat_size

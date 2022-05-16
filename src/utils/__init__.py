@@ -60,8 +60,8 @@ def extras(config: DictConfig) -> None:
     dask.config.set(scheduler='synchronous')
 
 def cluster_config(config: DictConfig) -> None:
-    torch.set_num_threads(config.cluster.num_cpus)
-    os.environ["OMP_NUM_THREADS"] = str(config.cluster.num_cpus)
+    torch.set_num_threads(config.cluster.cpus)
+    os.environ["OMP_NUM_THREADS"] = str(config.cluster.cpus)
 
 @rank_zero_only
 def print_config(

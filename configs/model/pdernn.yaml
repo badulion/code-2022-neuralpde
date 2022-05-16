@@ -5,7 +5,7 @@ use_last_only: True
 
 net:
   _target_: src.models.components.pdernn.PDERNN
-  input_features: 400
+  input_dim: 400
   hidden_size: 100
   num_layers: 2
   use_attention: False
