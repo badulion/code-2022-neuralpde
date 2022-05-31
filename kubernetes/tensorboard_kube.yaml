@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorboard
+  namespace: dulny
+  labels:
+    app: tensorboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tensorboard
+  template:
+    metadata:
+      labels:
+        app: tensorboard
+    spec:
+      imagePullSecrets:
+        - name: lsx-staff-registry
+      containers:
+        - name: tensorboard
+          image: lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/tensorboard:latest
+          imagePullPolicy: Always
+          workingDir: /home/ls6/dulny/
+          ports:
+          - containerPort: 6006
+          env:
+          - name: LOGDIR
+            value: neuralPDE-2022/logs2
+          command: ["tensorboard"]
+          args: ["--logdir", "$(LOGDIR)"] 
+          volumeMounts:
+            - name: logs
+              mountPath: /home/ls6/dulny/
+          resources:
+            requests:
+              memory: 4Gi
+              cpu: 2
+              nvidia.com/gpu: 0
+            limits:
+              memory: 4Gi
+              cpu: 2
+              nvidia.com/gpu: 0
+      restartPolicy: Always
+      volumes:
+      - name: logs
+        cephfs:
+          monitors:
+            - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
+          user: dulny
+          path: /home/ls6/dulny/
+          secretRef:
+            name: ceph-secret

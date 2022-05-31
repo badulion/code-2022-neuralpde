@@ -2,9 +2,9 @@
 
 hydra:
   run:
-    dir: logs/experiments/runs/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
+    dir: logs3/experiments/runs/${hydra:runtime.choices.datamodule}/${hydra:runtime.choices.model}/${now:%Y-%m-%d}_${now:%H-%M-%S}
   sweep:
-    dir: logs/experiments/multiruns/${name}/${now:%Y-%m-%d}_${now:%H-%M-%S}
+    dir: logs3/experiments/multiruns/${hydra:runtime.choices.datamodule}/${hydra:runtime.choices.model}/${now:%Y-%m-%d}_${now:%H-%M-%S}
     subdir: ${hydra.job.num}
 
 # hydra_cfg.runtime.choices.model

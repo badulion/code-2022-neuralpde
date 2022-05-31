@@ -6,7 +6,8 @@ class SimpleCNN(nn.Module):
                  input_dim,
                  hidden_layers,
                  hidden_channels,
-                 kernel_size=3):
+                 kernel_size=3,
+                 order=1):
         super().__init__()
         hidden_list = []
         for i in range(hidden_layers):
@@ -15,11 +16,12 @@ class SimpleCNN(nn.Module):
             hidden_list.append(nn.SELU())
             
         self.model = nn.Sequential(
-            nn.Conv2d(input_dim, hidden_channels, 3, padding='same', padding_mode='circular'),
+            nn.Conv2d(order*input_dim, hidden_channels, 3, padding='same', padding_mode='circular'),
             nn.SELU(),
             *hidden_list,
             nn.Conv2d(hidden_channels, input_dim, 3, padding='same', padding_mode='circular')
         )
+        self.input_dim = input_dim
 
     def forward(self, x):
         return self.model(x)

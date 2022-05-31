@@ -291,6 +291,7 @@ class PDEGenerator:
         d2wdx2 = convolve2d(w, Filters.dx2, mode='same', boundary='wrap')/(self.dx**2)
         d2wdy2 = convolve2d(w, Filters.dy2, mode='same', boundary='wrap')/(self.dy**2)
 
+        # resulting dynamic
         dvdt = - v * dvdx - w * dvdy + params['c']*(d2vdx2+d2vdy2)
         dwdt = - v * dwdx - w * dwdy + params['c']*(d2wdx2+d2wdy2)
 
@@ -411,10 +412,20 @@ class GenerationUtility:
         base_path = os.path.join(self.data_dir, "val")
         if not os.path.exists(base_path):
             os.makedirs(base_path)
-        for i in track(range(self.num_equations.val), description="[blue]Solving..."):
-            self.generator.generate(complexity=self.complexities.val)
-            path = os.path.join(base_path, f"{eq_hash}_{i}.nc")
-            eq_dataset.to_netcdf(path)
+
+        with Progress() as pbar:
+            all_train_equations_task = pbar.add_task("[blue]Solving...", total=self.num_equations.val)
+            if self.verbose:
+                single_train_equation_task = pbar.add_task("[purple]Equation progress...", total=self.tmax-self.tmin)
+            for i in range(self.num_equations.val):
+                if self.verbose:
+                    eq_dataset = self.generator.generate(complexity=complexity, pbar=pbar, task=single_train_equation_task)
+                    pbar.reset(single_train_equation_task)
+                else: 
+                    eq_dataset = self.generator.generate(complexity=complexity)
+                path = os.path.join(base_path, f"{eq_hash}_{i}.nc")
+                eq_dataset.to_netcdf(path)
+                pbar.advance(all_train_equations_task, advance=1)
         
         log.info("Solving test equations.")
         complexity = self.complexities.test
@@ -428,12 +439,20 @@ class GenerationUtility:
         base_path = os.path.join(self.data_dir, "test")
         if not os.path.exists(base_path):
             os.makedirs(base_path)
-        for i in track(range(self.num_equations.test), description="[green]Solving..."):
-            self.generator.generate(complexity=self.complexities.test)
-            path = os.path.join(base_path, f"{eq_hash}_{i}.nc")
-            eq_dataset.to_netcdf(path)
 
-
+        with Progress() as pbar:
+            all_train_equations_task = pbar.add_task("[green]Solving...", total=self.num_equations.test)
+            if self.verbose:
+                single_train_equation_task = pbar.add_task("[purple]Equation progress...", total=self.tmax-self.tmin)
+            for i in range(self.num_equations.test):
+                if self.verbose:
+                    eq_dataset = self.generator.generate(complexity=complexity, pbar=pbar, task=single_train_equation_task)
+                    pbar.reset(single_train_equation_task)
+                else: 
+                    eq_dataset = self.generator.generate(complexity=complexity)
+                path = os.path.join(base_path, f"{eq_hash}_{i}.nc")
+                eq_dataset.to_netcdf(path)
+                pbar.advance(all_train_equations_task, advance=1)
 
 
 if __name__ == "__main__":

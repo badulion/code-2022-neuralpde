@@ -3,10 +3,10 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - datamodule: gasdynamics
+  - datamodule: gas_dynamics
   - model: resnet
   - callbacks: default
-  - logger: many_loggers # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - logger: tensorboard # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default
   - log_dir: default
   - cluster: default
@@ -55,4 +55,4 @@ seed: null
 
 # default name for the experiment, determines logging folder path
 # (you can overwrite this name in experiment configs)
-name: "default"
+name: default

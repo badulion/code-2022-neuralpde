@@ -1,0 +1,13 @@
+_target_: src.datamodules.toypde_datamodule.PDEDatamodule
+
+data_dir: ${data_dir}/toypdes/advection_diffusion # data_dir is specified in config.yaml
+batch_size: 8
+num_workers: 0
+pin_memory: False
+
+
+histories: [4, 16, 16] # train, val, test
+horizons: [4, 16, 16] # train, val, test
+
+target_dict:
+  quantity: u

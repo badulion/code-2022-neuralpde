@@ -1,0 +1,17 @@
+_target_: src.models.hiddenstate_module.HiddenStateModule
+lr: 0.001
+weight_decay: 0.0005
+use_adjoint: false
+solver: euler
+step_size: 0.33334
+
+net:
+  _target_: src.models.components.hiddenstate.HiddenState
+  input_dim: 4
+  hidden_dim: 8
+
+dynamic:
+  _target_: src.models.components.simple_resnet.SimpleResnet
+  input_dim: ${model.net.hidden_dim}
+  resblocks: 4
+  resblock_channels: 16

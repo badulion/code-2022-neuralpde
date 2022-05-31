@@ -3,7 +3,7 @@
 # specify here default training configuration
 defaults:
   - _self_
-  - equation: gas_dynamics.yaml
+  - equation: gas_dynamics
   - cluster: default.yaml
 
   # enable color logging

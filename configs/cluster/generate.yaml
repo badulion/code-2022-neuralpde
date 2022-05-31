@@ -1,0 +1,6 @@
+job_name: neuralpde-eqgen
+image: lsx-staff-registry.informatik.uni-wuerzburg.de/dulny/neuralpde-2022:latest
+cpus: 16
+memory: 32
+use_gpu: False
+script_path: generate.py

@@ -78,7 +78,7 @@ class PDERNNModule(LightningModule):
         # we can return here dict with any tensors
         # and then read it in some callback or in `training_epoch_end()`` below
         # remember to always return loss from `training_step()` or else backpropagation will fail!
-        return {"loss": loss, "preds": preds, "targets": targets}
+        return {"loss": loss} # {"loss": loss, "preds": preds, "targets": targets}
 
     def training_epoch_end(self, outputs: List[Any]):
         # `outputs` is a list of dicts returned from `training_step()`
@@ -92,7 +92,7 @@ class PDERNNModule(LightningModule):
         self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=False)
         self.log("val/rmse", rmse, on_step=False, on_epoch=True, prog_bar=True)
 
-        return {"loss": loss, "preds": preds, "targets": targets}
+        return {"loss": loss} # {"loss": loss, "preds": preds, "targets": targets}
 
     def validation_epoch_end(self, outputs: List[Any]):
         rmse = self.val_metric.compute()  # get val accuracy from current epoch
@@ -107,20 +107,22 @@ class PDERNNModule(LightningModule):
         self.log("test/loss", loss, on_step=False, on_epoch=True)
         self.log("test/rmse", rmse, on_step=False, on_epoch=True)
 
+        mse = torch.mean((preds-targets)**2, dim=(-1, -2))
 
-        horizon = preds.size(dim=0)
-        target_names = list(self.trainer.datamodule.target_dict.keys()) # hack
-        for i in range(horizon):
-            horizon_mse = torch.mean((preds[i]-targets[i])**2, dim=(0, -1, -2))
-            metrics = {f"test/rmse/{target_names[k]}": torch.sqrt(horizon_mse[k]) for k in range(len(target_names))}
-            for logger in self.loggers:
-                logger.log_metrics(metrics, step=i+1)
-
-
-        return {"loss": loss, "preds": preds, "targets": targets}
+        return {"loss": loss, "mse": mse}
 
     def test_epoch_end(self, outputs: List[Any]):
-        pass
+        # concatenate outputs
+        mse = torch.concat([d['mse'] for d in outputs], dim=1)
+        horizon_mse = torch.mean(mse, dim=1)
+        
+        # log horizon metrics
+        horizon = horizon_mse.size(dim=0)
+        target_names = list(self.trainer.datamodule.target_dict.keys()) # hack
+        for i in range(horizon):
+            metrics = {f"test/rmse/{target_names[k]}": torch.sqrt(horizon_mse[i, k]) for k in range(len(target_names))}
+            for logger in self.loggers:
+                logger.log_metrics(metrics, step=i+1)
 
     def on_epoch_end(self):
         # reset metrics at the end of every epoch

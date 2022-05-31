@@ -6,10 +6,10 @@ spec:
   backoffLimit: 0
   template:
     spec:
-      priorityClassName: research-low
+      priorityClassName: research-med
       restartPolicy: "Never"
       containers:
-        - name: neuralPDE
+        - name: neuralpde
           image: {{ image }}
           workingDir: /home/ls6/dulny/neuralPDE-2022/
           imagePullPolicy: "Always"
@@ -38,9 +38,9 @@ spec:
               name: plasim
             - mountPath: "/home/ls6/dulny/neuralPDE-2022/outputs/"
               name: outputs
-            - mountPath: "/home/ls6/dulny/neuralPDE-2022/logs/"
+            - mountPath: "/home/ls6/dulny/neuralPDE-2022/logs2/"
               name: logs
-          command: ["python3", "-u", "{{ script_path }}"]
+          command: [{{ script_path }}]
           args: [{{ args_str }}]
       imagePullSecrets:
         - name: lsx-staff-registry
@@ -61,7 +61,7 @@ spec:
             path: "/datasets/weatherbench" # The path you want to mount
             secretRef: # The name of the secret for auth. Is always "ceph-secret"
               name: ceph-secret
-        - name: weatherbench
+        - name: plasim
           cephfs:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
@@ -74,7 +74,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20  # Not important for you, just copy along
             user: dulny  # <namespace>
-            path: "/home/ls6/dulny/neuralPDE-2022/logs/" # The path you want to mount
+            path: "/home/ls6/dulny/neuralPDE-2022/logs2/" # The path you want to mount
             secretRef: # The name of the secret for auth. Is always "ceph-secret"
               name: ceph-secret
         - name: outputs

@@ -37,7 +37,7 @@ class PlasimDataset(Dataset):
 
     def _prepare_data(self, years):
         file_list = self._list_paths(self.path, years)
-        data = xr.open_mfdataset(file_list)
+        data = xr.open_mfdataset(file_list, combine='nested', concat_dim='time')
         data= data.isel(lev=0)
         return data
 
@@ -52,7 +52,7 @@ class PlasimDataset(Dataset):
         norm_years_list = []
         for year in years:
             for file in file_list:
-                pattern = f'*{year}_plevel*'
+                pattern = f'*{year}_plevel.nc'
                 if fnmatch(file, pattern):
                     norm_years_list.append(os.path.join(path, file))
                     break

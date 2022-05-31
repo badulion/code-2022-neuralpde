@@ -4,6 +4,7 @@ from typing import Dict, Iterator
 import dotenv
 import hydra
 from omegaconf import DictConfig
+from time import sleep
 
 import os
 import subprocess
@@ -20,77 +21,36 @@ TIME_FORMAT = "%H-%M-%S"
 TEMPLATE_FILE = "kubernetes/kube.yaml.jinja2"
 
 
-def script_args_to_string(dict_):
-    string = ""
-    args_list = [f"{k}={v}" for k, v in dict_.items()]
-    string = " ".join(args_list)
-    return string
-
-
-def start_config(parameters, yaml, dry_run=False):
+def start_config(base, script, yaml, dry_run=False):
+    script_path = f"scripts/{base}/{script}.sh"
+    yaml['job_name'] = f"neuralpde-{script}"
     template = Environment(loader=FileSystemLoader(hydra.utils.get_original_cwd())).get_template(TEMPLATE_FILE)
-    print(hydra.utils.get_original_cwd())
-    args_string = script_args_to_string(parameters)
-    output_text = template.render(log_dir="/tmp", args_str=args_string, **yaml)
+    output_text = template.render(log_dir="/tmp", args_str=script_path, **yaml)
     if not dry_run:
         command = "kubectl -n dulny create -f -"
         p = subprocess.Popen(command.split(), stdin=subprocess.PIPE)
         p.communicate(output_text.encode())
-    else:
-        train_path = os.path.join(hydra.utils.get_original_cwd(), "train.py")
-        command = f"python {train_path} debug=step "+args_string
-        hydra_cwd = os.getcwd()
-        original_cwd = hydra.utils.get_original_cwd()
-        os.chdir(original_cwd)
-        p = subprocess.Popen(command.split())
-        p.communicate()
-        os.chdir(hydra_cwd)
+        sleep(0.5)
 
-
-def get_hyperparam_iterator(hyperparams: dict) -> Iterator:
-    hyperparam_iterator = []
-    for values in product(*hyperparams.values()):
-        keys = hyperparams.keys()
-        dictionary = dict(zip(keys, values))
-        hyperparam_iterator.append(dictionary)
-    return hyperparam_iterator
 
 @hydra.main(config_path="../configs/", config_name="kube_scheduler.yaml")
 def main(config: DictConfig):
     # Arguments which will be passed to the python script. Boolean flags will be automatically set to "--key" (if True)
     yaml_dict = config.cluster
 
-    hyperparameters = {
-        #'model': ['resnet', 'pdernn', 'neuralPDE', 'cnn', 'convLSTM', 'distana', 'pdenet', 'persistence'],
-        'model': ['neuralPDE'],
-        'datamodule': ['gasdynamics', 'weatherbench', 'plasim', 'oceanwave']
+    scripts = []
+    script_dict = {
+        "neuralpde": ["neuralpdeadvection", "neuralpdewave","neuralpdeburgers","neuralpdegasdynamics","neuralpdeoceanwave","neuralpdeweatherbench", "neuralpdeplasim"],
+        "neuralpde2": ["neuralpde2advection", "neuralpde2wave","neuralpde2burgers","neuralpde2gasdynamics","neuralpde2oceanwave","neuralpde2weatherbench", "neuralpde2plasim"],
+        "hiddenstate": ["hiddenstateadvection", "hiddenstatewave","hiddenstateburgers","hiddenstategasdynamics","hiddenstateoceanwave","hiddenstateweatherbench", "hiddenstateplasim"]
     }
-
-    def preprocess_hyperparams(p): # specific for this experiment
-        input_dim_dict = {
-            'gasdynamics': 4,
-            'weatherbench': 2,
-            'oceanwave': 3,
-            'plasim': 4
-        }
-        image_size_dict = {
-            'gasdynamics': 10*10,
-            'weatherbench': 32*64,
-            'oceanwave': 32*64,
-            'plasim': 32*64,
-        }
-        p['model.net.input_dim'] = input_dim_dict[p['datamodule']] if p['model'] != 'pdernn' else input_dim_dict[p['datamodule']]*image_size_dict[p['datamodule']]
-        p['name'] = p['model']
-        if p['model'] == 'persistence':
-            p['train'] = 'False'
-        return p
-
-
-    hyperparam_iterator = get_hyperparam_iterator(hyperparameters)
+    script_dict = {
+        "neuralpde2": ["neuralpde2plasim"],
+    }
     
-    for p in hyperparam_iterator:
-        p = preprocess_hyperparams(p)
-        start_config(p, yaml_dict, dry_run=True)
+    for base, scripts in script_dict.items():
+        for script in scripts:
+            start_config(base, script, yaml_dict, dry_run=False)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 from typing import Dict, Any
 import hashlib
 import json
-import numpy as np
 
 def dict_hash(dictionary: Dict[str, Any], *args) -> str:
     # if multiple dictionaries are passed join them first

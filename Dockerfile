@@ -26,6 +26,7 @@ RUN rm requirements.txt
 
 COPY configs/ configs/
 COPY src/ src/
+COPY scripts/ scripts/
 
 COPY test.py .
 COPY train.py .

@@ -3,10 +3,10 @@
 # specify here default evaluation configuration
 defaults:
   - _self_
-  - datamodule: toypde
+  - datamodule: gas_dynamics
   - model: resnet.yaml
   - callbacks: default.yaml
-  - logger: many_loggers.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - logger: tensorboard.yaml # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
   - log_dir: default.yaml
   - cluster: default.yaml
